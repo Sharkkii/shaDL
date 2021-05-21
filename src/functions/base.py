@@ -38,7 +38,7 @@ class Function(metaclass=ABCMeta):
 
     def grad(self, *douts):
         """
-        grad: Variables -> tuple(Variables)
+        grad: Variables -> a Variable | tuple(Variables)
         """
         tmp_douts = tuple([dout.data for dout in douts])
         tmp_dins = self.backward(*tmp_douts)

@@ -5,6 +5,15 @@ from .math import sub
 from .math import mul
 from .math import truediv
 from .math import pow
+from .math import exp
+from .math import log
+from .math import reshape
+from .math import sum
+from .math import mean
+
+from .activation import sigmoid
+from .activation import relu
+from .activation import softmax
 
 import os
 import sys

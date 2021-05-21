@@ -30,6 +30,7 @@ class Variable:
             if (fun is not None):
                 vars_fun = fun.inputs
                 grads_fun = fun.grad(var.grad)
+                grads_fun = grads_fun if isinstance(grads_fun, tuple) else (grads_fun,)
                 for var_fun, grad_fun in zip(vars_fun, grads_fun):
                     var_fun.grad = grad_fun if (var_fun.grad is None) else (var_fun.grad + grad_fun)
                 vars.extend(vars_fun)
