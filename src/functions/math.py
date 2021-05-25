@@ -210,3 +210,32 @@ def mean(a, axis=None, keepdims=False):
     f = Mean(axis=axis, keepdims=keepdims)
     return f(a)
 
+
+class Dot(Function):
+
+    def __init__(self):
+        super(Function, self).__init__()
+    
+    def forward(self, a, b):
+        """Dot.forward
+
+        Args:
+            a(numpy.ndarray<M>)
+            b(numpy.ndarray<M>)
+        
+        Note:
+            take care of the shape of a, b; they must be 1-dimensional array
+        """
+        c = np.dot(a, b)
+        return c
+    
+    def backward(self, dc):
+        a = self.inputs[0].data
+        b = self.inputs[1].data
+        da = dc * b
+        db = dc * a
+        return da, db
+    
+def dot(a, b):
+    f = Dot()
+    return f(a, b)

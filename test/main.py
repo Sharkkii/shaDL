@@ -198,6 +198,58 @@ def test_softmax():
     print(np.all(np.isclose(b_shadl.data, b_torch.data)))
     print(np.all(np.isclose(a_shadl.grad.data, a_torch.grad.data)))
 
+def test_dot():
+    print("#### Dot ####")
+    np.random.seed(0)
+    a = np.random.randn(3)
+    b = np.random.randn(3)
+    a_shadl = Variable(a.copy())
+    a_torch = torch.autograd.Variable(torch.tensor(a.copy()), requires_grad=True)
+    b_shadl = Variable(b.copy())
+    b_torch = torch.autograd.Variable(torch.tensor(b.copy()), requires_grad=True)
+
+    c_shadl = dot(a_shadl, b_shadl); c_shadl.backward()
+    c_torch = torch.dot(a_torch, b_torch); d_torch = torch.sum(c_torch); d_torch.backward()
+    print(np.all(np.isclose(c_shadl.data, c_torch.data)))
+    print(np.all(np.isclose(a_shadl.grad.data, a_torch.grad.data)))
+    print(np.all(np.isclose(b_shadl.grad.data, b_torch.grad.data)))
+
+def test_linear():
+    print("#### Linear ####")
+    np.random.seed(0)
+    a = np.random.randn(3,4)
+    b = np.random.randn(5,4)
+    c = np.random.randn(1,5)
+    a_shadl = Variable(a.copy())
+    a_torch = torch.autograd.Variable(torch.tensor(a.copy()), requires_grad=True)
+    b_shadl = Variable(b.copy())
+    b_torch = torch.autograd.Variable(torch.tensor(b.copy()), requires_grad=True)
+    c_shadl = Variable(c.copy())
+    c_torch = torch.autograd.Variable(torch.tensor(c.copy()), requires_grad=True)
+
+    d_shadl = linear(a_shadl, b_shadl, c_shadl); d_shadl.backward()
+    d_torch = F.linear(a_torch, b_torch, c_torch); e_torch = torch.sum(d_torch); e_torch.backward()
+    print(np.all(np.isclose(d_shadl.data, d_torch.data)))
+    print(np.all(np.isclose(a_shadl.grad.data, a_torch.grad.data)))
+    print(np.all(np.isclose(b_shadl.grad.data, b_torch.grad.data)))
+    print(np.all(np.isclose(c_shadl.grad.data, c_torch.grad.data)))
+
+def test_mse():
+    print("#### MSE ####")
+    np.random.seed(0)
+    a = np.random.randn(3,4)
+    b = np.random.randn(3,4)
+    a_shadl = Variable(a.copy())
+    a_torch = torch.autograd.Variable(torch.tensor(a.copy()), requires_grad=True)
+    b_shadl = Variable(b.copy())
+    b_torch = torch.autograd.Variable(torch.tensor(b.copy()), requires_grad=True)
+
+    c_shadl = mean_squared_error(a_shadl, b_shadl); c_shadl.backward()
+    c_torch = F.mse_loss(a_torch, b_torch, reduction="mean"); c_torch.backward()
+    print(np.all(np.isclose(c_shadl.data, c_torch.data)))
+    print(np.all(np.isclose(a_shadl.grad.data, a_torch.grad.data)))
+    print(np.all(np.isclose(b_shadl.grad.data, b_torch.grad.data)))
+
 
 def main():
 
@@ -213,7 +265,10 @@ def main():
     # test_reshape()
     # test_sum()
     # test_mean()
-    test_softmax()
+    # test_softmax()
+    # test_dot()
+    # test_linear()
+    test_mse()
 
 
 

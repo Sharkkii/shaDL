@@ -10,10 +10,15 @@ from .math import log
 from .math import reshape
 from .math import sum
 from .math import mean
+from .math import dot
 
 from .activation import sigmoid
 from .activation import relu
 from .activation import softmax
+
+from .layer import linear
+
+from .loss import mean_squared_error
 
 import os
 import sys
