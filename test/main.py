@@ -12,6 +12,7 @@ from src.variables import *
 from src.functions import *
 from src.optimizers import *
 from src.networks import *
+from src.data import *
 
 
 def test_add():
@@ -287,6 +288,42 @@ def test_ffnn():
         loss.backward()
         opt.step()
 
+def test_dataloader():
+
+    print("#### DataLoader ####")
+    np.random.seed(0)
+    x = np.random.uniform(low=-1, high=1, size=(100,1))
+    y = 2 * x - 1
+    dataset = Dataset(x, y)
+    dataloader = DataLoader(dataset, n_batch=10, do_shuffle=True)
+    # for x, y in dataloader:
+    #     print(x, y)
+
+    l1 = Linear(d_in=1, d_out=5, name="Linear1")
+    a1 = Sigmoid(name="Sigmoid1")
+    l2 = Linear(d_in=5, d_out=5, name="Linear2")
+    a2 = ReLU(name="ReLU2")
+    l3 = Linear(d_in=5, d_out=1)
+    ll = LayerList(l1, a1, l2, a2, l3)
+    n = FeedForwardNeuralNetwork(ll, name="FFNN")
+    opt = SGD(n.parameters(), lr=1e-2)
+
+    N_epoch = 100
+    for epoch in range(N_epoch):
+
+        for i, (x, y) in enumerate(dataloader):
+
+            x, y = Variable(x), Variable(y)
+            y_pred = n(x)
+            loss = mean_squared_error(y_pred, y)
+
+            opt.reset()
+            loss.backward()
+            opt.step()
+
+        if ((epoch+1) % 10 == 0):
+            print("%d %f" % (epoch+1, loss.data))
+
 
 def main():
 
@@ -306,7 +343,8 @@ def main():
     # test_dot()
     # test_linear()
     # test_mse()
-    test_ffnn()
+    # test_ffnn()
+    test_dataloader()
 
 
 
