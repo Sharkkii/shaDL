@@ -324,6 +324,17 @@ def test_dataloader():
         if ((epoch+1) % 10 == 0):
             print("%d %f" % (epoch+1, loss.data))
 
+def test_sequential_dataloader():
+
+    print("#### Sequential DataLoader ####")
+    np.random.seed(0)
+    x = np.linspace(start=-1, stop=1, num=100).reshape(-1,1)
+    y = 2 * x - 1
+    dataset = SequentialDataset(x, y)
+    dataloader = SequentialDataLoader(dataset, n_batch=10, do_shuffle=True)
+    for x, y in dataloader:
+        print(x, y)
+
 
 def main():
 
@@ -344,7 +355,8 @@ def main():
     # test_linear()
     # test_mse()
     # test_ffnn()
-    test_dataloader()
+    # test_dataloader()
+    test_sequential_dataloader()
 
 
 

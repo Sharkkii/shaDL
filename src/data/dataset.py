@@ -2,6 +2,8 @@
 
 import numpy as np
 
+from data.dataloader import SequentialDataLoader
+
 
 class Dataset:
 
@@ -20,3 +22,11 @@ class Dataset:
     
     def __setitem__(self, key, value):
         raise NotImplementedError
+
+
+class SequentialDataset(Dataset):
+
+    def __init__(self, X, y=None):
+        if (y is None):
+            X, y = X[:-1, :], X[1:, :]
+        super(SequentialDataset, self).__init__(X, y)
