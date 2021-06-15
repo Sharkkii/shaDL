@@ -1,6 +1,36 @@
 # utility
 
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
 import numpy as np
+from variables import Variable, Parameter
+
+def as_array(x):
+    assert(isinstance(x, (int, float, np.ndarray, Variable, Parameter)))
+    if (isinstance(x, (int, float))):
+        x = np.array(x)
+    elif (isinstance(x, np.ndarray)):
+        pass
+    elif (isinstance(x, (Variable, Parameter))):
+        x = x.data.copy()
+    return x
+
+def as_variable(x):
+    assert(isinstance(x, (int, float, np.ndarray, Variable, Parameter)))
+    if (isinstance(x, (int, float, np.ndarray))):
+        x = as_array(x)
+        x = Variable(x)
+    return x
+
+def as_parameter(x, name=""):
+    assert(isinstance(x, (int, float, np.ndarray, Variable, Parameter)))
+    if (isinstance(x, (int, float, np.ndarray, Variable))):
+        x = as_variable(x)
+        x = Parameter(x, name=name)
+    return x
+    
 
 def recover_shape(x, shape, axis, keepdims):
     """recover_shape

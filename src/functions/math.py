@@ -47,6 +47,10 @@ def sub(a, b):
     f = Sub()
     return f(a, b)
 
+def rsub(a, b):
+    f = Sub()
+    return f(b, a)
+
 
 class Mul(Function):
 
@@ -87,6 +91,9 @@ def truediv(a, b):
     f = Truediv()
     return f(a, b)
 
+def rtruediv(a, b):
+    f = Truediv()
+    return f(b, a)
 
 class Pow(Function):
 
@@ -107,6 +114,10 @@ class Pow(Function):
 def pow(a, b):
     f = Pow()
     return f(a, b)
+
+def rpow(a, b):
+    f = Pow()
+    return f(b, a)
 
 
 class Exp(Function):

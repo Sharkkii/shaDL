@@ -1,12 +1,21 @@
 # Variable
 
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
 import numpy as np
 
 class Variable:
 
     def __init__(self, data):
-        assert(isinstance(data, (int, float, np.ndarray)))
-        self.data = data
+        assert(isinstance(data, (int, float, np.ndarray, Variable)))
+        if (isinstance(data, (int, float))):
+            self.data = np.array(data)
+        elif (isinstance(data, np.ndarray)):
+            self.data = data.copy()
+        elif (isinstance(data, Variable)):
+            self.data = data.data.copy()
         self.grad = None
         self.parent = None
         self.children = []
@@ -35,11 +44,11 @@ class Variable:
                     var_fun.grad = grad_fun if (var_fun.grad is None) else (var_fun.grad + grad_fun)
                 vars.extend(vars_fun)
 
-    def ancestors(self):
-        return self.parent
+    # def ancestors(self):
+    #     return self.parent
 
-    def descendants(self):
-        return self.children
+    # def descendants(self):
+    #     return self.children
 
 
         

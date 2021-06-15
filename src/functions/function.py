@@ -7,6 +7,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from variables import Variable
+from utils import as_variable
 
 
 class Function(metaclass=ABCMeta):
@@ -19,7 +20,7 @@ class Function(metaclass=ABCMeta):
         """
         __call__: Variables -> a Variable | tuple(Variables)
         """
-        self.inputs = inputs
+        self.inputs = [as_variable(x) for x in inputs]
         for var in self.inputs:
             var.children = self
 
@@ -30,7 +31,7 @@ class Function(metaclass=ABCMeta):
         self.outputs = tuple([Variable(x) for x in tmp_outputs])
         for var in self.outputs:
             var.parent = self
-            var.generation = max([x.generation for x in inputs]) + 1
+            var.generation = max([x.generation for x in self.inputs]) + 1
         outputs = self.outputs if (len(self.outputs) > 1) else self.outputs[0]
 
         return outputs
@@ -60,5 +61,3 @@ class Function(metaclass=ABCMeta):
         backward: numpy.ndarrays -> a numpy.ndarray | tuple(numpy.ndarrays)
         """
         raise NotImplementedError
-
-
