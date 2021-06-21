@@ -104,7 +104,7 @@ class RNNCell(Layer):
             n_batch = x.shape[0]
             self.hidden_state = Parameter(np.zeros((n_batch, self.d_hidden)))
         y = self.hidden_state = functions.tanh(self.linear_x2h(x) + self.linear_h2h(self.hidden_state))
-        return y, h
+        return y, self.hidden_state
 
 
 class RNN(Layer):
@@ -125,6 +125,64 @@ class RNN(Layer):
         for idx in range(l_seq):
             x_idx = x.data[idx]
             y_idx, h = self.rnn_cell(Variable(x_idx))
+            y.data[idx] = y_idx.data
+        return y, h
+
+
+class LSTMCell(Layer):
+
+    def __init__(self, d_in, d_hidden, has_bias=True, name=""):
+        super(LSTMCell, self).__init__(name=name)
+
+        self.d_in = d_in
+        self.d_hidden = d_hidden
+        self.hidden_state = None
+        self.memory_cell = None
+        # (forget-gate, gain, input-gate, output-gate)
+        self.linear_x2h = Linear(d_in=d_in, d_out=d_hidden * 4, has_bias=has_bias)
+        self.linear_h2h = Linear(d_in=d_hidden, d_out=d_hidden * 4, has_bias=has_bias)
+
+    def __call__(self, x, h=None):
+        """LSTMCell.__call__
+
+        Args:
+            x(numpy.ndarray<n_batch,d_in>)
+            h(None)
+        """
+        if (self.hidden_state is None):
+            n_batch = x.shape[0]
+            self.hidden_state = Parameter(np.zeros((n_batch, self.d_hidden)))
+            self.memory_cell = Parameter(np.zeros((n_batch, self.d_hidden)))
+        
+        fgio = self.linear_x2h(x) + self.linear_h2h(self.hidden_state)
+        forget_gate = functions.sigmoid(fgio[:, :self.d_hidden])
+        gain = functions.tanh(fgio[:, self.d_hidden:2*self.d_hidden])
+        input_gate = functions.sigmoid(fgio[:, 2*self.d_hidden:3*self.d_hidden])
+        output_gate = functions.sigmoid(fgio[:, 3*self.d_hidden:])
+
+        self.memory_cell = forget_gate * self.memory_cell + input_gate * gain
+        y = self.hidden_state = output_gate * functions.tanh(self.memory_cell)
+        return y, self.hidden_state
+
+
+class LSTM(Layer):
+
+    def __init__(self, d_in, d_hidden, has_bias=True, name=""):
+        super(LSTM, self).__init__(name=name)
+        self.lstm_cell = LSTMCell(d_in=d_in, d_hidden=d_hidden, has_bias=has_bias, name=name)
+
+    def __call__(self, x):
+        """LSTMCell.__call__
+
+        Args:
+            x(numpy.ndarray<l_seq,n_batch,d_in>)
+            h(None)
+        """
+        l_seq, n_batch = x.shape[0], x.shape[1]
+        y = Variable(np.zeros((l_seq, n_batch, self.lstm_cell.d_hidden)))
+        for idx in range(l_seq):
+            x_idx = x.data[idx]
+            y_idx, h = self.lstm_cell(Variable(x_idx))
             y.data[idx] = y_idx.data
         return y, h
 
