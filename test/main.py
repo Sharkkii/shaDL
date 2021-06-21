@@ -173,6 +173,32 @@ def test_reshape():
     print(np.all(np.isclose(a_shadl.grad.data, a_torch.grad.data)))
     print(np.all(np.isclose(b_shadl.grad.data, b_torch.grad.data)))
 
+def test_getitem():
+    print("#### Getitem ####")
+    np.random.seed(0)
+    a = np.random.randn(3,4)
+    a_shadl = Variable(a.copy())
+    a_torch = torch.autograd.Variable(torch.tensor(a.copy()), requires_grad=True)
+
+    idx = (slice(0,2), slice(1,3))
+    b_shadl = a_shadl[idx]; c_shadl = sigmoid(b_shadl); c_shadl.backward()
+    # b_shadl = getitem(a_shadl, idx); c_shadl = sigmoid(b_shadl); c_shadl.backward()
+    b_torch = a_torch[idx]; b_torch.retain_grad(); c_torch = torch.sigmoid(b_torch)
+    d_torch = torch.sum(c_torch); d_torch.backward()
+
+    print(np.all(np.isclose(c_shadl.data, c_torch.data)))
+    print(np.all(np.isclose(a_shadl.grad.data, a_torch.grad.data)))
+    print(np.all(np.isclose(b_shadl.grad.data, b_torch.grad.data)))
+
+    # e_shadl = Variable(a.copy())
+    # f_shadl = sigmoid(e_shadl)
+    # f_shadl.backward()
+    # print(c_shadl)
+    # print(f_shadl)
+    # print(b_shadl.grad)
+    # print(e_shadl.grad)
+    
+
 def test_sum():
     print("#### Sum ####")
     np.random.seed(0)
@@ -360,6 +386,7 @@ def main():
     # test_relu()
     # test_tanh()
     # test_reshape()
+    test_getitem()
     # test_sum()
     # test_mean()
     # test_softmax()
@@ -368,7 +395,7 @@ def main():
     # test_mse()
     # test_ffnn()
     # test_dataloader()
-    test_sequential_dataloader()
+    # test_sequential_dataloader()
 
 
 

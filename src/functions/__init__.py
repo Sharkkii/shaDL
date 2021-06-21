@@ -11,6 +11,7 @@ from .math import rpow
 from .math import exp
 from .math import log
 from .math import reshape
+from .math import getitem
 from .math import sum
 from .math import mean
 from .math import dot

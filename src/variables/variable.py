@@ -17,9 +17,18 @@ class Variable:
         elif (isinstance(data, Variable)):
             self.data = data.data.copy()
         self.grad = None
+
+        self.shape = data.shape
         self.parent = None
         self.children = []
         self.generation = 0
+
+    def __getitem__(self, key):
+        """Variable.__getitem__
+
+        implemented in src/variables/__init__.py
+        """
+        raise NotImplementedError
     
     def __str__(self):
         return self.data.__str__()

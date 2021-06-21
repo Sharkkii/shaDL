@@ -178,6 +178,27 @@ def reshape(a, shape):
     return f(a)
 
 
+class Getitem(Function):
+
+    def __init__(self, idx):
+        super(Function, self).__init__()
+        self.idx = idx
+    
+    def forward(self, a):
+        b = a[self.idx]
+        return b
+    
+    def backward(self, db):
+        a = self.inputs[0].data
+        da = np.zeros_like(a)
+        da[self.idx] = da[self.idx] + db
+        return da
+
+def getitem(a, idx):
+    f = Getitem(idx=idx)
+    return f(a)
+
+
 class Sum(Function):
 
     def __init__(self, axis=None, keepdims=False):
