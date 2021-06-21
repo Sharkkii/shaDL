@@ -98,33 +98,39 @@ class RNNCell(Layer):
 
         Args:
             x(numpy.ndarray<n_batch,d_in>)
-            h(None)
+            h(numpy.ndarray<n_batch,d_hidden>)
         """
         if (self.hidden_state is None):
             n_batch = x.shape[0]
-            self.hidden_state = Parameter(np.zeros((n_batch, self.d_hidden)))
+            self.hidden_state = Parameter(h) if (h is not None) else Parameter(np.zeros((n_batch, self.d_hidden)))
         y = self.hidden_state = functions.tanh(self.linear_x2h(x) + self.linear_h2h(self.hidden_state))
         return y, self.hidden_state
+    
+    def reset(self):
+        self.hidden_state = None
 
 
 class RNN(Layer):
 
-    def __init__(self, d_in, d_hidden, has_bias=True, name=""):
+    def __init__(self, d_in, d_hidden, has_bias=True, is_stateful=False, name=""):
         super(RNN, self).__init__(name=name)
         self.rnn_cell = RNNCell(d_in=d_in, d_hidden=d_hidden, has_bias=has_bias, name=name)
+        self.is_stateful = is_stateful
 
-    def __call__(self, x):
-        """RNNCell.__call__
+    def __call__(self, x, h=None):
+        """RNN.__call__
 
         Args:
             x(numpy.ndarray<l_seq,n_batch,d_in>)
-            h(None)
+            h(numpy.ndarray<n_batch,d_hidden>)
         """
+        if (not self.is_stateful):
+            self.rnn_cell.reset()
         l_seq, n_batch = x.shape[0], x.shape[1]
         y = Variable(np.zeros((l_seq, n_batch, self.rnn_cell.d_hidden)))
         for idx in range(l_seq):
             x_idx = x.data[idx]
-            y_idx, h = self.rnn_cell(Variable(x_idx))
+            y_idx, h = self.rnn_cell(x=Variable(x_idx), h=h)
             y.data[idx] = y_idx.data
         return y, h
 
@@ -142,17 +148,20 @@ class LSTMCell(Layer):
         self.linear_x2h = Linear(d_in=d_in, d_out=d_hidden * 4, has_bias=has_bias)
         self.linear_h2h = Linear(d_in=d_hidden, d_out=d_hidden * 4, has_bias=has_bias)
 
-    def __call__(self, x, h=None):
+    def __call__(self, x, h=None, c=None):
         """LSTMCell.__call__
 
         Args:
             x(numpy.ndarray<n_batch,d_in>)
-            h(None)
+            h(numpy.ndarray<n_batch,d_hidden>)
+            c(numpy.ndarray<n_batch,d_hidden>)
         """
         if (self.hidden_state is None):
             n_batch = x.shape[0]
-            self.hidden_state = Parameter(np.zeros((n_batch, self.d_hidden)))
-            self.memory_cell = Parameter(np.zeros((n_batch, self.d_hidden)))
+            self.hidden_state = Parameter(h) if (h is not None) else Parameter(np.zeros((n_batch, self.d_hidden)))
+        if (self.memory_cell is None):
+            n_batch = x.shape[0]
+            self.memory_cell = Parameter(c) if (c is not None) else Parameter(np.zeros((n_batch, self.d_hidden)))
         
         fgio = self.linear_x2h(x) + self.linear_h2h(self.hidden_state)
         forget_gate = functions.sigmoid(fgio[:, :self.d_hidden])
@@ -163,26 +172,34 @@ class LSTMCell(Layer):
         self.memory_cell = forget_gate * self.memory_cell + input_gate * gain
         y = self.hidden_state = output_gate * functions.tanh(self.memory_cell)
         return y, self.hidden_state
+    
+    def reset(self):
+        self.hidden_state = None
+        self.memory_cell = None
 
 
 class LSTM(Layer):
 
-    def __init__(self, d_in, d_hidden, has_bias=True, name=""):
+    def __init__(self, d_in, d_hidden, has_bias=True, is_stateful=False, name=""):
         super(LSTM, self).__init__(name=name)
         self.lstm_cell = LSTMCell(d_in=d_in, d_hidden=d_hidden, has_bias=has_bias, name=name)
+        self.is_stateful = is_stateful
 
-    def __call__(self, x):
-        """LSTMCell.__call__
+    def __call__(self, x, h=None, c=None):
+        """LSTM.__call__
 
         Args:
             x(numpy.ndarray<l_seq,n_batch,d_in>)
-            h(None)
+            h(numpy.ndarray<n_batch,d_hidden>)
+            c(numpy.ndarray<n_batch,d_hidden>)
         """
+        if (not self.is_stateful):
+            self.lstm_cell.reset()
         l_seq, n_batch = x.shape[0], x.shape[1]
         y = Variable(np.zeros((l_seq, n_batch, self.lstm_cell.d_hidden)))
         for idx in range(l_seq):
             x_idx = x.data[idx]
-            y_idx, h = self.lstm_cell(Variable(x_idx))
+            y_idx, h = self.lstm_cell(x=Variable(x_idx), h=h)
             y.data[idx] = y_idx.data
         return y, h
 
