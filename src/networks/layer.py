@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 import numpy as np
 import functions
-from variables import Parameter, ParameterList
+from variables import Variable, Parameter, ParameterList
 
 
 class Layer(metaclass=ABCMeta):
@@ -80,6 +80,53 @@ class Linear(Layer):
         w = self.weight
         b = self.bias
         return functions.linear(x, w, b)
+
+
+class RNNCell(Layer):
+
+    def __init__(self, d_in, d_hidden, has_bias=True, name=""):
+        super(RNNCell, self).__init__(name=name)
+
+        self.d_in = d_in
+        self.d_hidden = d_hidden
+        self.hidden_state = None
+        self.linear_x2h = Linear(d_in=d_in, d_out=d_hidden, has_bias=has_bias)
+        self.linear_h2h = Linear(d_in=d_hidden, d_out=d_hidden, has_bias=has_bias)
+
+    def __call__(self, x, h=None):
+        """RNNCell.__call__
+
+        Args:
+            x(numpy.ndarray<n_batch,d_in>)
+            h(None)
+        """
+        if (self.hidden_state is None):
+            n_batch = x.shape[0]
+            self.hidden_state = Parameter(np.zeros((n_batch, self.d_hidden)))
+        y = self.hidden_state = functions.tanh(self.linear_x2h(x) + self.linear_h2h(self.hidden_state))
+        return y, h
+
+
+class RNN(Layer):
+
+    def __init__(self, d_in, d_hidden, has_bias=True, name=""):
+        super(RNN, self).__init__(name=name)
+        self.rnn_cell = RNNCell(d_in=d_in, d_hidden=d_hidden, has_bias=has_bias, name=name)
+
+    def __call__(self, x):
+        """RNNCell.__call__
+
+        Args:
+            x(numpy.ndarray<l_seq,n_batch,d_in>)
+            h(None)
+        """
+        l_seq, n_batch = x.shape[0], x.shape[1]
+        y = Variable(np.zeros((l_seq, n_batch, self.rnn_cell.d_hidden)))
+        for idx in range(l_seq):
+            x_idx = x.data[idx]
+            y_idx, h = self.rnn_cell(Variable(x_idx))
+            y.data[idx] = y_idx.data
+        return y, h
 
 
 class Sigmoid(Layer):

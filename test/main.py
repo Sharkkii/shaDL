@@ -7,13 +7,24 @@ import torch.nn.functional as F
 
 import os
 import sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from src.utils import Recorder1d
 from src.variables import *
 from src.functions import *
 from src.optimizers import *
 from src.networks import *
 from src.data import *
 
+
+def test_utils():
+    print("#### Utils ####")
+    recorder = Recorder1d(n_capacity=5, alpha=0.5)
+    a = np.arange(20)[::-1]
+    for i in range(20):
+        recorder.record(a[i])
+        assert(np.isclose(recorder.average, np.mean(a[:i+1])))
+        assert(np.isclose(recorder.simple_moving_average, np.mean(a[max(i-4,0):i+1])))
 
 def test_add():
     print("#### Add ####")
@@ -373,8 +384,62 @@ def test_sequential_dataloader():
     for x, y in dataloader:
         print(x, y)
 
+def test_rnn():
+
+    print("#### RNN ####")
+    np.random.seed(0)
+    l_seq = 1000
+    l_bptt = 5
+    n_batch = 2
+    d_hidden = 8
+    n_epoch = 100
+    n_iter_per_epoch = int(l_seq / (n_batch * l_bptt))
+
+    x = np.linspace(0, 1, l_seq+1, endpoint=True).reshape(-1,1)
+    noise = np.random.randn(*x.shape)
+    x = np.sin(2 * np.pi * x) + noise * 0.05
+    x, y = x[:-1], x[1:]
+    dataset = SequentialDataset(x, y)
+    dataloader = SequentialDataLoader(dataset, n_batch=n_batch, l_bptt=l_bptt, do_shuffle=True)
+
+    class Model:
+        def __init__(self, l_seq):
+            self.rnn = RNN(d_in=1, d_hidden=d_hidden, name="RNN")
+            self.linear = Linear(d_in=d_hidden, d_out=1, name="Linear")
+            # self.linear = Linear(d_in=l_bptt*d_hidden, d_out=1, name="Linear")
+        def __call__(self, x):
+            x, _ = self.rnn(x)
+            x = x[-1, :, :]
+            # x = reshape(x, (-1, l_bptt*d_hidden))
+            x = self.linear(x)
+            return x
+        def parameters(self):
+            return LayerList(self.rnn, self.linear).parameters()
+
+    model = Model(l_seq)
+    opt = SGD(model.parameters(), lr=5e-3)
+    recorder = Recorder1d(n_capacity=1, alpha=1)
+    for epoch in range(n_epoch):
+
+        for idx, (x, y) in enumerate(dataloader):
+
+            x, y = Variable(x), Variable(y)
+            y_pred = model(x)
+            loss = mean_squared_error(y_pred, y.data[-1, :, :])
+            recorder.record(loss.data)
+            
+            opt.reset()
+            loss.backward()
+            opt.step()
+
+            if ((idx+1) % (int(n_iter_per_epoch / 1)) == 0):
+                print("epoch (%d,%d) | loss %4.4f" % (epoch+1, idx+1, recorder.average))
+                recorder.reset()
+
+
 def main():
 
+    # test_utils()
     # test_add()
     # test_sub()
     # test_mul()
@@ -386,7 +451,7 @@ def main():
     # test_relu()
     # test_tanh()
     # test_reshape()
-    test_getitem()
+    # test_getitem()
     # test_sum()
     # test_mean()
     # test_softmax()
@@ -396,6 +461,7 @@ def main():
     # test_ffnn()
     # test_dataloader()
     # test_sequential_dataloader()
+    test_rnn()
 
 
 
