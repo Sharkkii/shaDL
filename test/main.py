@@ -340,13 +340,12 @@ def test_sequential_dataloader():
 
     print("#### Sequential DataLoader ####")
     np.random.seed(0)
-    x = np.linspace(start=-1, stop=1, num=100).reshape(-1,1)
+    x = np.linspace(start=-1, stop=1, num=60).reshape(-1,1)
     y = 2 * x - 1
     dataset = SequentialDataset(x, y)
-    dataloader = SequentialDataLoader(dataset, n_batch=10, do_shuffle=True)
+    dataloader = SequentialDataLoader(dataset, n_batch=10, l_bptt=3, do_shuffle=False)
     for x, y in dataloader:
         print(x, y)
-
 
 def main():
 
@@ -359,7 +358,7 @@ def main():
     # test_log()
     # test_sigmoid()
     # test_relu()
-    test_tanh()
+    # test_tanh()
     # test_reshape()
     # test_sum()
     # test_mean()
@@ -369,7 +368,7 @@ def main():
     # test_mse()
     # test_ffnn()
     # test_dataloader()
-    # test_sequential_dataloader()
+    test_sequential_dataloader()
 
 
 
