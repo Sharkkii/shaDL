@@ -12,10 +12,10 @@ from . import Function
 class Linear(Function):
 
     def __init__(self):
-        super(Function, self).__init__()
+        super(Linear, self).__init__()
     
     def forward(self, x, w, b):
-        """FLinear.forward
+        """Linear.forward
 
         Args:
             x(numpy.ndarray<N,d_in>)
@@ -44,7 +44,7 @@ def linear(x, w, b):
 class Sigmoid(Function):
 
     def __init__(self):
-        super(Function, self).__init__()
+        super(Sigmoid, self).__init__()
     
     def forward(self, a):
         b = np.exp(np.minimum(0, a)) / (1 + np.exp(- np.abs(a)))
@@ -60,10 +60,29 @@ def sigmoid(a):
     return f(a)
 
 
+class Tanh(Function):
+
+    def __init__(self):
+        super(Tanh, self).__init__()
+    
+    def forward(self, a):
+        b = (np.exp(a) - np.exp(- a)) / (np.exp(a) + np.exp(- a))
+        return b
+    
+    def backward(self, db):
+        b = self.outputs[0].data
+        da = db * (1 - b**2)
+        return da
+
+def tanh(a):
+    f = Tanh()
+    return f(a)
+
+
 class ReLU(Function):
 
     def __init__(self):
-        super(Function, self).__init__()
+        super(ReLU, self).__init__()
         self.mask = None
     
     def forward(self, a):
@@ -85,7 +104,7 @@ class Softmax(Function):
     """
 
     def __init__(self, axis=None, keepdims=False):
-        super(Function, self).__init__()
+        super(Softmax, self).__init__()
         self.axis = 1
         self.keepdims = True
     

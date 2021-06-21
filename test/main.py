@@ -134,6 +134,18 @@ def test_sigmoid():
     print(np.all(np.isclose(b_shadl.data, b_torch.data)))
     print(np.all(np.isclose(a_shadl.grad.data, a_torch.grad.data)))
 
+def test_tanh():
+    print("#### Tanh ####")
+    np.random.seed(0)
+    a = np.random.randn(3)
+    a_shadl = Variable(a.copy())
+    a_torch = torch.autograd.Variable(torch.tensor(a.copy()), requires_grad=True)
+
+    b_shadl = tanh(a_shadl); b_shadl.backward()
+    b_torch = torch.tanh(a_torch); c_torch = torch.sum(b_torch); c_torch.backward()
+    print(np.all(np.isclose(b_shadl.data, b_torch.data)))
+    print(np.all(np.isclose(a_shadl.grad.data, a_torch.grad.data)))
+
 def test_relu():
     print("#### ReLU ####")
     np.random.seed(0)
@@ -347,6 +359,7 @@ def main():
     # test_log()
     # test_sigmoid()
     # test_relu()
+    test_tanh()
     # test_reshape()
     # test_sum()
     # test_mean()
@@ -356,7 +369,7 @@ def main():
     # test_mse()
     # test_ffnn()
     # test_dataloader()
-    test_sequential_dataloader()
+    # test_sequential_dataloader()
 
 
 

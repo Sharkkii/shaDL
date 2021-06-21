@@ -17,6 +17,7 @@ from .math import dot
 
 from .layer import linear
 from .layer import sigmoid
+from .layer import tanh
 from .layer import relu
 from .layer import softmax
 
